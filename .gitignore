@@ -1,4 +1,6 @@
 .mypy_cache
 .vscode
 venv
-m*.py
+
+docker*.yml
+*config*.yml
