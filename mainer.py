@@ -10,13 +10,13 @@ class Cell:
 
 class GamePole:
     def init(self, N: int, M: int) -> None:
-        self.cord_mines: list[tuple] = []   #координаты мин
+        self.cord_mines: list[tuple] = []   # координаты мин
         self.N: int = N
         self.pole: list[list] = [[Cell() for _ in range(N)] for _ in range(N)]
         for i in range(M):
-            x, y = self.plant_mine()    #установка мин по полю
+            x, y = self.plant_mine()    # установка мин по полю
             self.pole[x][y].mine = True
-        self.check_mines()  #установка значений вокруг мин
+        self.check_mines()  # установка значений вокруг мин
 
     def plant_mine(self) -> tuple:
         'метод для закладки мин по полю'
