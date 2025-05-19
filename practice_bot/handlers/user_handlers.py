@@ -8,6 +8,9 @@ from aiogram.types import (
                             InlineKeyboardMarkup)
 from aiogram.filters import Command, CommandStart
 
+from ..keyboards.keyboards import create_inline_kb
+from ..lexicon.lexicon import BUTTONS
+
 
 logger = logging.getLogger(__name__)
 
@@ -62,6 +65,19 @@ async def process_button_2_press(callback: CallbackQuery):
             reply_markup=callback.message.reply_markup
         )
     await callback.answer(text='Ура! Нажата кнопка 2', show_alert=True)
+
+@user_router.message(Command(commands='c'))
+async def process_buttons_command(message: Message):
+    keyboard = create_inline_kb(
+    3,
+    last_btn='back',
+    **BUTTONS
+)
+    await message.answer(
+        text='Это инлайн-клавиатура, сформированная функцией '
+             '<code>create_inline_kb</code>',
+        reply_markup=keyboard
+    )
 
 @user_router.message(Command(commands='getid'))
 async def process_get_id_command(message: Message):
