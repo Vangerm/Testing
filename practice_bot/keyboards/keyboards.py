@@ -1,7 +1,7 @@
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 from aiogram.filters.callback_data import CallbackData
-from ..lexicon.lexicon import LEXICON
+from ..lexicon.lexicon_ru import LEXICON_RU
 
 
 class MyCallbackFactory(CallbackData, prefix='any'):

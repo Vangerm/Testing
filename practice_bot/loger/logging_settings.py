@@ -12,7 +12,7 @@ logging_config = {
             'class': 'logging.FileHandler',
             'filename': 'practice_bot/loger/logs.log',
             'mode': 'w',
-            'level': 'INFO',
+            'level': 'DEBUG',
             'formatter': 'default',
             'encoding': 'utf-8'
         }

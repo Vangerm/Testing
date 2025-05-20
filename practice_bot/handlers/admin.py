@@ -13,8 +13,10 @@ logger = logging.getLogger(__name__)
 
 admin_router = Router()
 
+admin_router.message.filter(IsAdmin())
+
 
 # Получение логер файла
-@admin_router.message(Command(commands='getlog'), IsAdmin())
+@admin_router.message(Command(commands='getlog'))
 async def admin_get_log_command(message: Message):
-    await message.answer_document(FSInputFile('bot/loger/logs.log'))
+    await message.answer_document(FSInputFile('practice_bot/loger/logs.log'))
