@@ -31,7 +31,7 @@ class ASG(StatesGroup):
 async def yes_click_process(callback: CallbackQuery,
                             widget: Button,
                             dialog_manager: DialogManager):
-    await callback.message.edit_text(
+    await callback.message.edit_text( # type: ignore
         text='<b>Прекрасно!</b>\n\nНадеюсь, вы найдете в этом курсе что-то '
              'новое и полезное для себя!'
     )
@@ -42,7 +42,7 @@ async def yes_click_process(callback: CallbackQuery,
 async def no_click_process(callback: CallbackQuery,
                            widget: Button,
                            dialog_manager: DialogManager):
-    await callback.message.edit_text(
+    await callback.message.edit_text( # type: ignore
         text='<b>Попробуйте!</b>\n\nСкорее всего, вам понравится!'
     )
     await dialog_manager.done()
