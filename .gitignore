@@ -6,6 +6,8 @@ venv
 docker*.yml
 *config*.yml
 \sea_battle
+\vps
+
 
 ai*
 
