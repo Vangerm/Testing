@@ -24,119 +24,48 @@ router = Router()
 class StartSG(StatesGroup):
     start = State()
 
-class ASG(StatesGroup):
-    a = State()
 
-class BSG(StatesGroup):
-    b = State()
+class SecondDialogSG(StatesGroup):
+    start = State()
 
 
-# Хэндлер, обрабатывающий нажатие на кнопку 'Да'
-async def yes_click_process(callback: CallbackQuery,
-                            widget: Button,
-                            dialog_manager: DialogManager):
-    await callback.message.edit_text( # type: ignore
-        text='<b>Прекрасно!</b>\n\nНадеюсь, вы найдете в этом курсе что-то '
-             'новое и полезное для себя!'
-    )
-    await dialog_manager.done()
+async def go_start(callback: CallbackQuery, button: Button, dialog_manager: DialogManager):
+    await dialog_manager.start(state=StartSG.start, mode=StartMode.RESET_STACK)
 
 
-# Хэндлер, обрабатывающий нажатие на кнопку 'Нет'
-async def no_click_process(callback: CallbackQuery,
-                           widget: Button,
-                           dialog_manager: DialogManager):
-    await callback.message.edit_text( # type: ignore
-        text='<b>Попробуйте!</b>\n\nСкорее всего, вам понравится!'
-    )
-    await dialog_manager.done()
+async def start_second(callback: CallbackQuery, button: Button, dialog_manager: DialogManager):
+    await dialog_manager.start(state=SecondDialogSG.start)
 
 
-async def get_items(**kwargs):
-    return {'items': (
-        (1, 'Пункт 1'),
-        (2, 'Пункт 2'),
-        (3, 'Пункт 3'),
-    )}
-
-
-async def get_topics(dialog_manager: DialogManager, **kwargs):
-    topics = [
-        ("IT", '1'),
-        ("Дизайн", '2'),
-        ("Наука", '3'),
-        ("Общество", '4'),
-        ("Культура", '5'),
-        ("Искусство", '6'),
-    ]
-    return {"topics": topics}
-
-
-# Это геттер
-async def get_username(event_from_user: User, **kwargs):
-    return {'username': event_from_user.username}
+async def username_getter(dialog_manager: DialogManager, event_from_user: User, **kwargs):
+    return {'username': event_from_user.username or 'Stranger'}
 
 
 start_dialog = Dialog(
     Window(
-        Format(text='Привет, <b>{username}</b>!\n'),
-        Const(
-            text='Пробовали ли вы уже писать ботов с использованием '
-                 'библиотеки <code>aiogram_dialog</code>?'
-        ),
-        Row(
-            Button(text=Const('✅ Да'), id='yes', on_click=yes_click_process),
-            Button(text=Const('✖️ Нет'), id='no', on_click=no_click_process),
-        ),
-        getter=get_username,
-        state=StartSG.start,
+        Format('<b>Привет, {username}!</b>\n'),
+        Const('Нажми на кнопку,\nчтобы перейти во второй диалог 👇'),
+        Button(Const('Кнопка'), id='go_second', on_click=start_second),
+        getter=username_getter,
+        state=StartSG.start
     ),
 )
 
-a_dialog = Dialog(
+second_dialog = Dialog(
     Window(
-        List(field=Format('{item[0]}. {item[1]}'),
-             items='items'),
-        getter=get_items,
-        state=ASG.a,
-    ),
-)
-
-b_dialog = Dialog(
-    Window(
-        Const(text='Отметьте темы новостей 👇'),
-        Column(
-            Multiselect(
-                checked_text=Format('[✔️] {item[0]}'),
-                unchecked_text=Format('[  ] {item[0]}'),
-                id='multi_topics',
-                item_id_getter=operator.itemgetter(1),
-                items="topics",
-            ),
-        ),
-        state=BSG.b,
-        getter=get_topics
+        Const('Нажми на кнопку,\nчтобы вернуться в стартовый диалог 👇'),
+        Button(Const('Кнопка'), id='button_start', on_click=go_start),
+        state=SecondDialogSG.start
     ),
 )
 
 
-# Это классический хэндлер, который будет срабатывать на команду /start
-@router.message(CommandStart())
+@dp.message(CommandStart())
 async def command_start_process(message: Message, dialog_manager: DialogManager):
     await dialog_manager.start(state=StartSG.start, mode=StartMode.RESET_STACK)
 
-@router.message(Command(commands='a'))
-async def command_a_process(message: Message, dialog_manager: DialogManager):
-    await dialog_manager.start(state=ASG.a, mode=StartMode.RESET_STACK)
-
-@router.message(Command(commands='b'))
-async def command_b_process(message: Message, dialog_manager: DialogManager):
-    await dialog_manager.start(state=BSG.b, mode=StartMode.RESET_STACK)
-
 
 dp.include_router(router)
-dp.include_router(start_dialog)
-dp.include_router(a_dialog)
-dp.include_router(b_dialog)
+dp.include_routers(start_dialog, second_dialog)
 setup_dialogs(dp)
 dp.run_polling(bot)
