@@ -7,6 +7,7 @@ from aiogram.fsm.state import State, StatesGroup
 from aiogram.types import CallbackQuery, Message, User
 from aiogram_dialog import Dialog, DialogManager, StartMode, Window, setup_dialogs
 from aiogram_dialog.widgets.kbd import Button, Row, Column, Multiselect
+from aiogram_dialog.widgets.input import TextInput, ManagedTextInput
 from aiogram_dialog.widgets.text import Const, Format, List
 from environs import Env
 
@@ -21,6 +22,45 @@ dp = Dispatcher()
 router = Router()
 
 
+class StartSG(StatesGroup):
+    start = State()
+
+
+class SecondDialogSG(StatesGroup):
+    start = State()
+
+
+async def go_start(callback: CallbackQuery, button: Button, dialog_manager: DialogManager):
+    await dialog_manager.start(state=StartSG.start, mode=StartMode.RESET_STACK)
+
+
+async def start_second(callback: CallbackQuery, button: Button, dialog_manager: DialogManager):
+    await dialog_manager.start(state=SecondDialogSG.start)
+
+
+async def username_getter(dialog_manager: DialogManager, event_from_user: User, **kwargs):
+    return {'username': event_from_user.username or 'Stranger'}
+
+
+start_dialog = Dialog(
+    Window(
+        Format('<b>Привет, {username}!</b>\n'),
+        Const('Нажми на кнопку,\nчтобы перейти во второй диалог 👇'),
+        Button(Const('Кнопка'), id='go_second', on_click=start_second),
+        getter=username_getter,
+        state=StartSG.start
+    ),
+)
+
+second_dialog = Dialog(
+    Window(
+        Const('Нажми на кнопку,\nчтобы вернуться в стартовый диалог 👇'),
+        Button(Const('Кнопка'), id='button_start', on_click=go_start),
+        state=SecondDialogSG.start
+    ),
+)
+
+
 @dp.message(CommandStart())
 async def command_start_process(message: Message):
     print(message.text)
@@ -28,4 +68,6 @@ async def command_start_process(message: Message):
 
 
 dp.include_router(router)
+dp.include_routers(start_dialog, second_dialog)
+setup_dialogs(dp)
 dp.run_polling(bot)
