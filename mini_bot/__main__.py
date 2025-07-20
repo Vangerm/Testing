@@ -6,7 +6,7 @@ from aiogram.filters import CommandStart, Command
 from aiogram.fsm.state import State, StatesGroup
 from aiogram.types import CallbackQuery, Message, User
 from aiogram_dialog import Dialog, DialogManager, StartMode, Window, setup_dialogs
-from aiogram_dialog.widgets.kbd import Button, Row, Column, Multiselect
+from aiogram_dialog.widgets.kbd import Button, Row, Column, Multiselect, Select
 from aiogram_dialog.widgets.input import TextInput, ManagedTextInput
 from aiogram_dialog.widgets.text import Const, Format, List
 from environs import Env
@@ -53,17 +53,26 @@ async def error_age_handler(
         text='Вы ввели некорректный возраст. Попробуйте еще раз'
     )
 
+async def get_categories(**kwargs):
+    categories = [
+        # ('Техника', 1),
+        # ('Одежда', 2),
+        # ('Обувь', 3),
+    ]
+    return {'categories': categories}
+
 
 start_dialog = Dialog(
     Window(
-        Const(text='Введите ваш возраст'),
-        TextInput(
-            id='age_input',
-            type_factory=age_check,
-            on_success=correct_age_handler,
-            on_error=error_age_handler,
+        Const(text='Выберите категорию:'),
+        Select(
+            Format('{item[0]}'),
+            id='categ',
+            item_id_getter=lambda x: x[1],
+            items='categories'
         ),
         state=StartSG.start,
+        getter=get_categories
     ),
 )
 
