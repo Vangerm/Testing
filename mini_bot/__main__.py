@@ -26,32 +26,20 @@ class StartSG(StatesGroup):
     start = State()
 
 
-# Проверка текста на то, что он содержит число от 3 до 120 включительно
-def age_check(text: str) -> str:
-    if all(ch.isdigit() for ch in text) and 3 <= int(text) <= 120:
-        return text
-    raise ValueError
+class SecondDialogSG(StatesGroup):
+    start = State()
 
 
-# Хэндлер, который сработает, если пользователь ввел корректный возраст
-async def correct_age_handler(
-        message: Message,
-        widget: ManagedTextInput,
-        dialog_manager: DialogManager,
-        text: str) -> None:
-
-    await message.answer(text=f'Вам {text}')
+async def go_start(callback: CallbackQuery, button: Button, dialog_manager: DialogManager):
+    await dialog_manager.start(state=StartSG.start, mode=StartMode.RESET_STACK)
 
 
-# Хэндлер, который сработает на ввод некорректного возраста
-async def error_age_handler(
-        message: Message,
-        widget: ManagedTextInput,
-        dialog_manager: DialogManager,
-        error: ValueError):
-    await message.answer(
-        text='Вы ввели некорректный возраст. Попробуйте еще раз'
-    )
+async def start_second(callback: CallbackQuery, button: Button, dialog_manager: DialogManager):
+    await dialog_manager.start(state=SecondDialogSG.start)
+
+
+async def username_getter(dialog_manager: DialogManager, event_from_user: User, **kwargs):
+    return {'username': event_from_user.username or 'Stranger'}
 
 async def get_categories(**kwargs):
     categories = [
@@ -64,25 +52,25 @@ async def get_categories(**kwargs):
 
 start_dialog = Dialog(
     Window(
-        Const(text='Выберите категорию:'),
-        Select(
-            Format('{item[0]}'),
-            id='categ',
-            item_id_getter=lambda x: x[1],
-            items='categories'
+        Const(text='Введите ваш возраст'),
+        TextInput(
+            id='age_input',
+            type_factory=age_check,
+            on_success=correct_age_handler,
+            on_error=error_age_handler,
         ),
         state=StartSG.start,
-        getter=get_categories
     ),
 )
 
 
 @dp.message(CommandStart())
-async def command_start_process(message: Message, dialog_manager: DialogManager):
-    await dialog_manager.start(state=StartSG.start, mode=StartMode.RESET_STACK)
+async def command_start_process(message: Message):
+    print(message.text)
+
 
 
 dp.include_router(router)
-dp.include_routers(start_dialog)
+dp.include_routers(start_dialog, second_dialog)
 setup_dialogs(dp)
 dp.run_polling(bot)
