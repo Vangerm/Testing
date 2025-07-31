@@ -1,6 +1,6 @@
 import logging
 
-from aiogram import Router, F
+from aiogram import Router, F, Bot
 from aiogram.types import (
                             Message,
                             CallbackQuery,
@@ -32,15 +32,17 @@ async def process_start_command(message: Message, i18n: dict[str, str]) -> None:
 
 # Этот хэндлер срабатывает на нажатие инлайн-кнопки
 @user_router.callback_query(F.data, MyTrueFilter())
-async def process_button_click(callback: CallbackQuery, i18n: dict[str, str]) -> None:
+async def process_button_click(callback: CallbackQuery, i18n: dict[str, str], bot: Bot) -> None:
     logger.debug('Вошли в хэндлер, обрабатывающий нажатие на инлайн-кнопку')
-    await callback.answer(text=i18n['button_pressed'])
+    # await callback.answer(text=i18n['button_pressed'])
+    await bot.send_message(chat_id=469873066, text='111')
     logger.debug('Выходим из хэндлера, обрабатывающего нажатие на инлайн-кнопку')
 
 
 # Это хэндлер, который мог бы обрабатывать любой текст,
 # но `MyFalseFilter` его не пропустит
 @user_router.message(F.text, MyFalseFilter())
-async def process_text(message: Message):
+async def process_text(message: Message, bot: Bot) -> None:
     logger.debug('Вошли в хэндлер, обрабатывающий текст')
     logger.debug('Выходим из хэндлера, обрабатывающего текст')
+    await bot.send_message(chat_id=469873066, text='111')

@@ -20,33 +20,39 @@ async def cmd_start(
         first_name=message.from_user.first_name,
         last_name=message.from_user.last_name
     )
-    do_ignore = stmt.on_conflict_do_nothing(index_elements=['telegram_id'])
+    do_ignore = stmt.on_conflict_do_update(
+        index_elements=['telegram_id'],
+        set_={
+            "first_name": message.from_user.first_name,
+            "last_name": message.from_user.last_name
+        }
+    )
     async with db_engine.connect() as conn:
         await conn.execute(do_ignore)
         await conn.commit()
     await message.answer("Привет!")
 
 
-# @router.message(Command("select"))
-# async def cmd_select(
-#     message: Message,
-#     db_engine: AsyncEngine
-# ):
-#     stmts = [
-#         select(column("telegram_id"), column("first_name")).select_from(users_table),
-#         select("*").select_from(users_table),
-#         select("*").select_from(users_table).where(users_table.c.first_name == "Groosha"),
-#         select(users_table.c.telegram_id, users_table.c.first_name).select_from(users_table),
-#         select(users_table.c.telegram_id).where(users_table.c.telegram_id < 1_000_000)
-#     ]
+@router.message(Command("select"))
+async def cmd_select(
+    message: Message,
+    db_engine: AsyncEngine
+):
+    stmts = [
+        select(column("telegram_id"), column("first_name")).select_from(users_table),
+        select("*").select_from(users_table),
+        select("*").select_from(users_table).where(users_table.c.first_name == "Groosha"),
+        select(users_table.c.telegram_id, users_table.c.first_name).select_from(users_table),
+        select(users_table.c.telegram_id).where(users_table.c.telegram_id < 1_000_000)
+    ]
 
-#     async with db_engine.connect() as conn:
-#         for stmt in stmts:
-#             result = await conn.execute(stmt)
-#             for row in result:
-#                 print(row)
-#         print("==========")
-#     await message.answer("Проверьте терминал, чтобы увидеть данные.")
+    async with db_engine.connect() as conn:
+        for stmt in stmts:
+            result = await conn.execute(stmt)
+            for row in result:
+                print(row)
+        print("==========")
+    await message.answer("Проверьте терминал, чтобы увидеть данные.")
 
 
 # @router.message(Command("deleteme"))
